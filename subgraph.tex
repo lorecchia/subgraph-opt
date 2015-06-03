@@ -1,0 +1,124 @@
+\documentclass{article}
+\usepackage{amsthm,amsmath,amssymb,graphicx,amsfonts,epsfig,array,url,cite,wrapfig,epstopdf}
+\usepackage[center,footnotesize]{caption}
+%\interdisplaylinepenalty=2500
+%\usepackage{fullpage}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{remark}{Remark}[section]
+
+\DeclareMathOperator{\Tr}{Tr}
+\DeclareMathOperator{\Prox}{Prox}
+
+\begin{document}
+
+\title{Fast optimization for subgraph problems}
+\author{\vspace{-10pt}}
+
+\maketitle
+
+\subsection*{Problem formulation}
+
+Let $G = (V,E)$ denote our underlying undirected unweighted graph with $n$ nodes and let $w_{ij} = 1$ if $(i,j) \in E$ and zero otherwise. Denote the $n \times n$ edge Laplacian matrix as $L_{ij} = e_{ii} + e_{jj} - e_{ij} - e_{ji}$ for two nodes $i$ and $j$, where $e_{ij}$ is a zero matrix with a one in index $i,j$. Let $A \cdot B = \Tr(A B)$ denote the inner product in the space of symmetric PSD matrices. Given a symmetric PSD matrix $M \in \mathbb{R}^{n \times n}$, $M \succeq 0$, we write
+\[ Q(M) = \sum_{i,j} (w_{ij} - \gamma) M_{ij} L_{ij} \succeq 0 \]
+as a constraint on the $\gamma$-connectivity of the subgraph induced by $M$ (e.g.\ if $M = \frac{1}{n} 1_S 1_S^T$ for subgraph $S$) on underlying graph $G$.
+
+We consider the following optimization problem:
+\begin{equation}\label{eq:opt}
+  \max_{M \in \Delta_n} \quad C \cdot M \quad \mathrm{s.t.\ } \quad Q(M) \succeq 0,
+\end{equation}
+where $\Delta_n = \{X \in \mathbb{R}^{n \times n} : X \succeq 0, \Tr(X) = I_n \cdot X = 1 \}$ denotes the ``spectrahedron'' of $n \times n$ symmetric PSD matrices with unit trace. 
+
+We consider the following Lagrangian of the above problem (where $h(x)$ is the hinge function such that $h(x) = x$ for $x \geq 0$ and zero otherwise):
+\begin{equation}\label{eq:opt2}
+  \max_{M \in \Delta_n} f(M),\quad f(M) = \min_{Y \in \Delta_n} C \cdot M - h(- Y \cdot Q(M)).
+\end{equation}
+Note that $f(M) = C \cdot M$ if $Q(M) \succeq 0$.
+
+
+\subsection*{Non-smooth optimization with mirror descent}
+
+Mirror descent is an optimization procedure that generalizes subgradient methods to non-Euclidean spaces (see section 5.3 of \cite{lectures} or \cite{blog}). For an optimization problem $\min_{x \in X} f(x)$, it tries to minimize the local linearization of the function while trying to stay close to the previous point using a strongly convex differentiable mirror map function $\omega(\cdot)$ to measure locality.
+
+Mirror descent is given by the recurrence
+\[ x_0 = \arg\min_{x \in X} \omega(x), \quad x_{t+1} = \Prox_{x_t}(\gamma_t f'(x_t)), \]
+where $f'(x_t)$ is a subgradient of $f$ at $x_t$, $\gamma_t$ are step sizes and the proximity operator is defined as 
+\[ \Prox_{x}(\psi ) = \arg\min_{y \in X} \, \omega(y) + \langle \psi - \omega'(x), y \rangle. \]
+This proximity operator aims to move in the negative direction to $\psi$, while staying close to the original point $x$.
+
+With the above steps, letting $x^T = \frac{\sum_{t=1}^T \gamma_t x_t}{\sum_{t=1}^T \gamma_t}$ and choosing step sizes appropriately, it is shown in Theorem 5.3.1 of \cite{lectures} that
+\[ f(x^T) - \min_{x \in X} f(x) \leq \frac{\Omega L(f)}{\sqrt{T}}, \]
+where $L(f)$ is the Lipschitz constant of $f$ w.r.t.\ the considered norm in $X$ and $\Omega$ is related to the radius of $X$ w.r.t.\ $\omega(\cdot)$ (e.g.\ $\Omega \leq \sqrt{2 (\max \omega(\cdot) - \min \omega(\cdot))}$).
+
+
+In the spectrahedron setup (for minimization $\min_{x \in \Delta_n} f(x)$), we will use the negative von Neumann entropy of a matrix, $\omega(x) = \sum_{i=1}^n \lambda_i \log \lambda_i$ as the mirror map, where $\lambda_i$ are the eigenvalues of $x$. Working out the proximal mapping, this gives us the following multiplicative update rule (see part 2 of \cite{blog}):
+\begin{equation}\label{eq:expUpdate}
+  M_{t+1} \propto \exp \left( \log M_t - \gamma_t f'(M_t) \right),
+\end{equation}
+with matrix exponential and logarithm, $M_0 = \frac{1}{n} I_n$ and the right-hand side is normalized to unit trace to obtain $M_{t+1}$. $L(f)$ is the Lipschitz constant of $f$ w.r.t.\ the matrix trace norm and we can also show that $\Omega = O(\sqrt{\log n})$ and $L(f)$. 
+
+Note that \eqref{eq:expUpdate} is written for the general minimization problem, while we consider the maximization problem, so our update step would look something like
+\[ M_{t+1} \propto \exp \left( \sum_{\tau=1}^t \alpha_\tau f'(M_\tau) \right) \]
+for some weights $\alpha_\tau$, where we also unrolled the recursion.
+
+
+\subsection*{Subgradients}
+
+We need to compute subgradients of $f(M)$ as formulated in \eqref{eq:opt2} in order to compute mirror descent updates as stated above. We first state Danskin's Theorem \cite{danskin} that considers saddle problems of the form \eqref{eq:opt2}.
+
+\begin{theorem}[Danskin's Theorem]
+  Let $f(x) = \max_z \phi(x,z)$, where $\phi(\cdot,z)$ is a convex function for all $z$. Define $Z_0(x) = \{z' : \phi(x,z') = \max_z \phi(x,z)\}$ to be the set of maximizers $z$ given a point $x$. Then, under certain regularity conditions the subdifferential of $f$ at $x$ is given by 
+  \[ \partial f(x) = \mathrm{conv}\left\{ \partial \phi(x,z) : z \in Z_0(x)\right\}. \]
+\end{theorem}
+
+This way we see that for a given $M$, by finding a maximizer $Y$ of $Y \cdot Q(M)$ we can obtain a subgradient for $f$ at $M$. Note that we can write
+\[ \frac{\partial Q(M)}{\partial M_{ij}} = (w_{ij} - \gamma) L_{ij}, \quad \frac{\partial (Y \cdot Q(M))}{\partial M_{ij}} = (w_{ij} - \gamma) Y \cdot L_{ij}, \]
+therefore for the update we can write
+\[ \partial f(M) = \begin{cases}
+			\{C\}, \quad Q(M) \succeq 0 \\
+			\mathrm{conv}\left\{C + \sum_{i,j} (w_{ij} - \gamma) \left(Y \cdot L_{ij} \right) e_{ij} : Y \in \arg\min_{Y' \in \Delta_n} \{Y' \cdot Q(M)\} \right\}, \quad Q(M) \not\succeq 0.
+			\end{cases} \]
+
+
+\subsection*{Rounding}
+
+Instead of finding subgradients and solving mirror descent in the spectrahedron $\Delta_n$ to obtain a final $M^T$ and rounding that to a cut $S^T$ at the end of the algorithm, we may want to incorporate the rounding of the solution inside every iteration of the mirror descent algorithm. This might give us more intuitive iteration steps.
+
+In every iteration $t$, we would round the matrix $M_t$ to a cut $S_t$. We would then check whether $Q(S_t) \succeq 0$, if so, we would apply mirror descent with subgradient $C$ at $S_t$ to obtain $M_{t+1}$. If not, we would find a cut $Y$ such that $Y \cdot Q(S_t)$ is minimized, which we would intuitively expect to be the cut that cuts set $S_t$ with a value less than $\gamma$. We would then expect the mirror descent step that uses this $Y$ to give us a new iterate $M_{t+1}$ that has higher internal conductance by weighting the edges that are cut more.
+
+In order to do this rounding at every step, we need to come up with a rounding scheme to go from matrix $M_t$ to cut $S_t$, and also show that we can find a minimizer $Y$ through solving a cut problem to obtain a subgradient.
+
+
+
+\subsection*{Other notes}
+
+\begin{itemize}
+\item We may consider putting a slack term $Q(M) \succeq -\frac{\gamma}{2} I_n$ instead of $Q(M) \succeq 0$ in \eqref{eq:opt2}, which may lead to a better conditioning of the problem (?)
+\end{itemize}
+
+
+\bibliographystyle{plain} 
+\begin{thebibliography}{9}
+
+\bibitem{lectures}
+  Aharon Ben-Tal and Arkadi Nemirovski,
+  \emph{Lectures on modern convex optimization},
+  \url{http://www2.isye.gatech.edu/~nemirovs/Lect_ModConvOpt.pdf}.
+  
+\bibitem{blog}
+  Sebastian Bubeck,
+  \emph{Mirror descent},
+  \url{https://blogs.princeton.edu/imabandit/2013/04/16/orf523-mirror-descent-part-iii/}.  
+
+\bibitem{danskin}
+  \emph{Danskin's theorem},
+  \url{http://en.wikipedia.org/wiki/Danskin\%27s_theorem}.  
+
+\end{thebibliography}
+
+
+
+\end{document}
