@@ -33,15 +33,15 @@ We consider the following optimization problem:
 where $\Delta_n = \{X \in \mathbb{R}^{n \times n} : X \succeq 0, \Tr(X) = I_n \cdot X = 1 \}$ denotes the ``spectrahedron'' of $n \times n$ symmetric PSD matrices with unit trace. 
 
 We consider the following Lagrangian of the above problem (where $h(x)$ is the hinge function such that $h(x) = x$ for $x \geq 0$ and zero otherwise):
-\begin{equation}\label{eq:opt2}
-  \max_{M \in \Delta_n} f(M),\quad f(M) = \min_{Y \in \Delta_n} C \cdot M - h(- Y \cdot Q(M)).
-\end{equation}
+\begin{align}\label{eq:opt2}
+  \max_{M \in \Delta_n} f(M),\quad f(M) =  C \cdot M + \min_{Y \succeq 0}  h(Y \cdot Q(M)).
+\end{align}
 Note that $f(M) = C \cdot M$ if $Q(M) \succeq 0$.
 
 
 \subsection*{Non-smooth optimization with mirror descent}
 
-Mirror descent is an optimization procedure that generalizes subgradient methods to non-Euclidean spaces (see section 5.3 of \cite{lectures} or \cite{blog}). For an optimization problem $\min_{x \in X} f(x)$, it tries to minimize the local linearization of the function while trying to stay close to the previous point using a strongly convex differentiable mirror map function $\omega(\cdot)$ to measure locality.
+Mirror descent is an optimization procedure that generalizes subgradient methods to non-Euclidean spaces (see section 5.3 of \cite{lectures} or \cite{blog}). For an optimization problem $\min_{x \in X} f(x)$, it tries to minimize the local linearization of the function while trying to stay close to the previous point using  differentiable mirror map function $\omega(\cdot)$ to measure locality. This function must be 1-strongly convex with respect to a norm $||\cdot||$.
 
 Mirror descent is given by the recurrence
 \[ x_0 = \arg\min_{x \in X} \omega(x), \quad x_{t+1} = \Prox_{x_t}(\gamma_t f'(x_t)), \]
@@ -51,16 +51,16 @@ This proximity operator aims to move in the negative direction to $\psi$, while 
 
 With the above steps, letting $x^T = \frac{\sum_{t=1}^T \gamma_t x_t}{\sum_{t=1}^T \gamma_t}$ and choosing step sizes appropriately, it is shown in Theorem 5.3.1 of \cite{lectures} that
 \[ f(x^T) - \min_{x \in X} f(x) \leq \frac{\Omega L(f)}{\sqrt{T}}, \]
-where $L(f)$ is the Lipschitz constant of $f$ w.r.t.\ the considered norm in $X$ and $\Omega$ is related to the radius of $X$ w.r.t.\ $\omega(\cdot)$ (e.g.\ $\Omega \leq \sqrt{2 (\max \omega(\cdot) - \min \omega(\cdot))}$).
+where $L(f)$ is the Lipschitz constant of $f$ w.r.t. the considered norm in $X$ and $\Omega$ is related to the radius of $X$ w.r.t.\ $\omega(\cdot)$ (e.g.\ $\Omega \leq \sqrt{2 (\max \omega(\cdot) - \min \omega(\cdot))}$).
 
 
-In the spectrahedron setup (for minimization $\min_{x \in \Delta_n} f(x)$), we will use the negative von Neumann entropy of a matrix, $\omega(x) = \sum_{i=1}^n \lambda_i \log \lambda_i$ as the mirror map, where $\lambda_i$ are the eigenvalues of $x$. Working out the proximal mapping, this gives us the following multiplicative update rule (see part 2 of \cite{blog}):
+In the spectrahedron setup (for minimization $\min_{x \in \Delta_n} f(x)$), we will use the negative von Neumann entropy of a matrix, $\omega(x) = \sum_{i=1}^n \lambda_i \log \lambda_i$ as the mirror map, where $\lambda_i$ are the eigenvalues of $x$. Notice that this map is $1$-strongly convex with respect to the $\ell_1$ norm of the eigenvalues, i.e., to the matrix trace norm. Working out the proximal mapping, this gives us the following multiplicative update rule (see part 2 of \cite{blog}):
 \begin{equation}\label{eq:expUpdate}
   M_{t+1} \propto \exp \left( \log M_t - \gamma_t f'(M_t) \right),
 \end{equation}
-with matrix exponential and logarithm, $M_0 = \frac{1}{n} I_n$ and the right-hand side is normalized to unit trace to obtain $M_{t+1}$. $L(f)$ is the Lipschitz constant of $f$ w.r.t.\ the matrix trace norm and we can also show that $\Omega = O(\sqrt{\log n})$ and $L(f)$. 
+with matrix exponential and logarithm, $M_0 = \frac{1}{n} I_n$ and the right-hand side is normalized to unit trace to obtain $M_{t+1}$. $L(f)$ is the Lipschitz constant of $f$ w.r.t.\ the matrix trace norm. We can also show that $\Omega = O(\sqrt{\log n})$. 
 
-Note that \eqref{eq:expUpdate} is written for the general minimization problem, while we consider the maximization problem, so our update step would look something like
+Note that \eqref{eq:expUpdate} is written for the general minimization problem, while we consider the maximization problem, so our update step would instead be
 \[ M_{t+1} \propto \exp \left( \sum_{\tau=1}^t \alpha_\tau f'(M_\tau) \right) \]
 for some weights $\alpha_\tau$, where we also unrolled the recursion.
 
@@ -74,13 +74,30 @@ We need to compute subgradients of $f(M)$ as formulated in \eqref{eq:opt2} in or
   \[ \partial f(x) = \mathrm{conv}\left\{ \partial \phi(x,z) : z \in Z_0(x)\right\}. \]
 \end{theorem}
 
-This way we see that for a given $M$, by finding a maximizer $Y$ of $Y \cdot Q(M)$ we can obtain a subgradient for $f$ at $M$. Note that we can write
+This way we see that for a given $M$, by finding a minimizer $Y$ of the hinge  $h(Y \cdot Q(M))$ we can obtain a subgradient for $f$ at $M$. 
+In particular, we have: 
 \[ \frac{\partial Q(M)}{\partial M_{ij}} = (w_{ij} - \gamma) L_{ij}, \quad \frac{\partial (Y \cdot Q(M))}{\partial M_{ij}} = (w_{ij} - \gamma) Y \cdot L_{ij}, \]
-therefore for the update we can write
+Therefore we can write the following expression for the subgradient of $f$ at $M$.
 \[ \partial f(M) = \begin{cases}
 			\{C\}, \quad Q(M) \succeq 0 \\
-			\mathrm{conv}\left\{C + \sum_{i,j} (w_{ij} - \gamma) \left(Y \cdot L_{ij} \right) e_{ij} : Y \in \arg\min_{Y' \in \Delta_n} \{Y' \cdot Q(M)\} \right\}, \quad Q(M) \not\succeq 0.
+			\mathrm{conv}\left\{C + \sum_{i,j} (w_{ij} - \gamma) \left(Y \cdot L_{ij} \right) e_{ij} : 
+			Y \in \arg\min_{Y' \succeq 0} \{h(Y' \cdot Q(M)\} \right\}, \quad Q(M) \not\succeq 0.
 			\end{cases} \]
+This can be further simplified by considering the definiton of the hinge function $h(\cdot).$
+In particular, we have:
+$$
+Y \in \arg\min_{Y' \succeq 0} \{h(Y' \cdot Q(M)\} = {Y' \succeq 0 : Q(M) \cdot Y' \leq 0.}.
+$$
+In words, any $Y'$ which highlights a constraint broken by $M$ is a valid subgradient.
+
+\subsection{Some fixes to be included}
+
+Here are a number of things that need to be modified or dealt with in the current approach. Feel free to add more:
+\begin{enumerate}
+\item Formulation of the relaxation: if the goal is to relax the objective: $\max_{S \textrm{connected}} \frac{\sum_{i \in S} c_i}{|S|^2}$, as it is in oneof the applications, then we probably need to do a binary search over the possible sizes of $S.$ The reason is that the constraint $I \cdot M = 1$ and the objective $C \cdot M = 1$ are homogeneous, so they are suitable for optimizing $\frac{\sum_{i \in S} c_i}{|S|},$ which is trivially optimal at the maximum valued vertex.
+\item I am a bit worried about the constraint $Q(M) \succeq 0.$ It seems to me that it will work fine if we also impose $M_{ij} \geq 0$ for all $i,j.$  If we don't do this, it seems like a SDP solution may pick out disconnected components by giving positive values to one component and negative value to the other. This may complicate the iterative scheme, as we have to keep around these new $n^2$ constraints. Lorenzo will think more about this.
+\end{enumerate}
+
 
 
 \subsection*{Rounding}

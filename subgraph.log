@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  3 JUN 2015 15:53
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  8 JUN 2015 12:35
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -285,34 +285,42 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
 {/usr/local/texlive/2013/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2]
-Overfull \hbox (90.7252pt too wide) detected at line 83
+Overfull \hbox (93.74947pt too wide) detected at line 85
 \OML/cmm/m/it/10 @f\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 M\OT1/cmr/m/n/10 ) = []
  []
 
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 99.
-(/usr/local/texlive/2013/texmf-dist/tex/latex/base/omscmr.fd
+
+Overfull \hbox (56.71219pt too wide) in paragraph at lines 97--98
+[]\OT1/cmr/m/n/10 Formulation of the re-lax-ation: if the goal is to re-lax the
+ ob-jec-tive: $[][] []$,
+ []
+
+[3]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 116.
+
+ (/usr/local/texlive/2013/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 99.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 116.
 
-Underfull \hbox (badness 5787) in paragraph at lines 112--115
+Underfull \hbox (badness 5787) in paragraph at lines 129--132
 []\OT1/cmr/m/n/10 Sebastian Bubeck, \OT1/cmr/m/it/10 Mir-ror de-scent\OT1/cmr/m
 /n/10 , $\OT1/cmtt/m/n/10 https : / / blogs . princeton . edu /
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 117--119
+Underfull \hbox (badness 10000) in paragraph at lines 134--136
 []\OT1/cmr/m/it/10 Danskin's the-o-rem\OT1/cmr/m/n/10 , $\OT1/cmtt/m/n/10 http 
 : / / en . wikipedia . org / wiki / Danskin \ %27s _
  []
 
-[3] (./subgraph.aux) ) 
+[4] (./subgraph.aux) ) 
 Here is how much of TeX's memory you used:
- 3856 strings out of 493315
- 56024 string characters out of 6137904
- 123064 words of memory out of 5000000
- 7248 multiletter control sequences out of 15000+600000
+ 3857 strings out of 493315
+ 56030 string characters out of 6137904
+ 124064 words of memory out of 5000000
+ 7249 multiletter control sequences out of 15000+600000
  12017 words of font info for 47 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
  42i,9n,38p,574b,268s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -335,10 +343,10 @@ b></usr/local/texlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb>
 /usr/local/texlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></
 usr/local/texlive/2013/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pf
 b>
-Output written on subgraph.pdf (3 pages, 194479 bytes).
+Output written on subgraph.pdf (4 pages, 201303 bytes).
 PDF statistics:
- 86 PDF objects out of 1000 (max. 8388607)
- 62 compressed objects within 1 object stream
+ 89 PDF objects out of 1000 (max. 8388607)
+ 64 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
