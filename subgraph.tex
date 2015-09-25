@@ -124,7 +124,7 @@ We refine the formulation in Section 1, considering point 2 in Section 4, i.e., 
 which can be seen easily by induction over $K$. Expanding above inequality, we have
 \[ \sum_{i,j} u_i u_j \leq K \sum_i u_i^2. \]
 This in turn corresponds to the following constraint on $M$
-\[ \sum_{i,j} M_{ij} \leq \sum_i M_{ii}, \]
+\[ \sum_{i,j} M_{ij} \leq K \sum_i M_{ii}, \]
 and considering that we have $\Tr(M) = 1$, this is equivalent to $J \cdot M \leq K$, where $J \triangleq 1_n 1_n^\prime$. Then a new formulation is
 
 \begin{align*}
@@ -136,18 +136,22 @@ where $M \in \Delta_n$ implies $M \succeq 0$ and $I \cdot M = 1$.
 
 Can be formalized in the mirror descent framework as above, with two additional dual variables corresponding to $J \cdot M \leq K$ and $M \geq 0$. TODO: formalize and state the gradient and updates.
 
-\subsection{Issues}
+\subsection{Rounding}
 
-It seems that the above formulation is not enough for connectedness, which can be seen in the simulations in constr.m. However adding constraints found in \cite{nips} does enforce connectedness.
+It seems that the above formulation is not enough for connectedness, which can be seen in the simulations in constr.m. However adding constraints found in \cite{nips} does enforce connectedness. However this is for the simple rounding case where $S = supp(diag(S))$. The reason for this can be that the solution $M$ is like a mixture of connected solutions, so the union is not necessarily connected.
+
+Will investigate different rounding strategies such as hyperplane rounding, where we e.g.\ do
+\[ w = Mv, \quad v \in \{-1, 1\}^n, \]
+for some random vector $v$, possibly multiple times. Then we can threshold these $w$ to obtain multiple clusters, which we expect to be connected if the formulation is valid.
 
 For comparison purposes, in \cite{nips} the optimization formulation is
 \begin{align*}
   \max_{M \text{ symmetric}} \quad C \cdot M \quad \mathrm{s.t.\ } \quad & Q(M) \succeq 0, \quad 1 \geq M \geq 0, \quad M_{pp} = 1 \\
-  & M_{ij} \leq M_{ii} \, \forall i, j, \quad M_{ii} \leq M_{ip} \, \forall i, \quad I \cdot M \leq K
+  & M_{ij} \leq M_{ii} \; \forall i, j, \quad M_{ii} \leq M_{ip} \; \forall i, \quad I \cdot M \leq K
 \end{align*}
 so the PSD constraint is relaxed but box constraints are added along with anchor constraints for an anchor node $p$ and non-diagonal constraints (which is stronger than PSD).
 
-It is stated in Theorem 3 in \cite{nips} that above constraints are satisfied for some $\gamma$ and anchor $p$ if and only if subgraph corresponding to $M$ ($S = supp(diag(M))$) is connected. It might be worthwhile to try to establish a if and only if relationship between the proposed formulation (without anchor nodes) and the condition stated in the Theorem, i.e.\ with our constraints, there exists some $p$ such that anchor constraints are satisfied and vice versa.
+(As an aside: It is stated in Theorem 3 in \cite{nips} that above constraints are satisfied for some $\gamma$ and anchor $p$ if and only if subgraph corresponding to $M$ ($S = supp(diag(M))$) is connected. It might be worthwhile to try to establish a if and only if relationship between the proposed formulation (without anchor nodes) and the condition stated in the Theorem, i.e.\ with our constraints, there exists some $p$ such that anchor constraints are satisfied and vice versa.)
 
 
 
@@ -171,7 +175,7 @@ It is stated in Theorem 3 in \cite{nips} that above constraints are satisfied fo
 \bibitem{nips}
   Jing Qian, Venkatesh Saligrama
   \emph{Efficient minimax signal detection on graphs},
-  \url{http://papers.nips.cc/paper/5525-efficient-minimax-signal-detection-on-graphs}.
+  \url{http://arxiv.org/abs/1411.6203}.
 
 \end{thebibliography}
 
