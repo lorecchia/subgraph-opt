@@ -20,7 +20,7 @@
 
 \maketitle
 
-\subsection*{Problem formulation}
+\section{Problem formulation}
 
 Let $G = (V,E)$ denote our underlying undirected unweighted graph with $n$ nodes and let $w_{ij} = 1$ if $(i,j) \in E$ and zero otherwise. Denote the $n \times n$ edge Laplacian matrix as $L_{ij} = e_{ii} + e_{jj} - e_{ij} - e_{ji}$ for two nodes $i$ and $j$, where $e_{ij}$ is a zero matrix with a one in index $i,j$. Let $A \cdot B = \Tr(A B)$ denote the inner product in the space of symmetric PSD matrices. Given a symmetric PSD matrix $M \in \mathbb{R}^{n \times n}$, $M \succeq 0$, we write
 \[ Q(M) = \sum_{i,j} (w_{ij} - \gamma) M_{ij} L_{ij} \succeq 0 \]
@@ -30,7 +30,7 @@ We consider the following optimization problem:
 \begin{equation}\label{eq:opt}
   \max_{M \in \Delta_n} \quad C \cdot M \quad \mathrm{s.t.\ } \quad Q(M) \succeq 0,
 \end{equation}
-where $\Delta_n = \{X \in \mathbb{R}^{n \times n} : X \succeq 0, \Tr(X) = I_n \cdot X = 1 \}$ denotes the ``spectrahedron'' of $n \times n$ symmetric PSD matrices with unit trace. 
+where $\Delta_n = \{X \in \mathbb{R}^{n \times n} : X \succeq 0, \Tr(X) = I_n \cdot X = 1 \}$ denotes the ``spectrahedron'' of $n \times n$ symmetric PSD matrices with unit trace.
 
 We consider the following Lagrangian of the above problem (where $h(x)$ is the hinge function such that $h(x) = x$ for $x \geq 0$ and zero otherwise):
 \begin{align}\label{eq:opt2}
@@ -39,13 +39,13 @@ We consider the following Lagrangian of the above problem (where $h(x)$ is the h
 Note that $f(M) = C \cdot M$ if $Q(M) \succeq 0$.
 
 
-\subsection*{Non-smooth optimization with mirror descent}
+\section{Non-smooth optimization with mirror descent}
 
 Mirror descent is an optimization procedure that generalizes subgradient methods to non-Euclidean spaces (see section 5.3 of \cite{lectures} or \cite{blog}). For an optimization problem $\min_{x \in X} f(x)$, it tries to minimize the local linearization of the function while trying to stay close to the previous point using  differentiable mirror map function $\omega(\cdot)$ to measure locality. This function must be 1-strongly convex with respect to a norm $||\cdot||$.
 
 Mirror descent is given by the recurrence
 \[ x_0 = \arg\min_{x \in X} \omega(x), \quad x_{t+1} = \Prox_{x_t}(\gamma_t f'(x_t)), \]
-where $f'(x_t)$ is a subgradient of $f$ at $x_t$, $\gamma_t$ are step sizes and the proximity operator is defined as 
+where $f'(x_t)$ is a subgradient of $f$ at $x_t$, $\gamma_t$ are step sizes and the proximity operator is defined as
 \[ \Prox_{x}(\psi ) = \arg\min_{y \in X} \, \omega(y) + \langle \psi - \omega'(x), y \rangle. \]
 This proximity operator aims to move in the negative direction to $\psi$, while staying close to the original point $x$.
 
@@ -58,29 +58,28 @@ In the spectrahedron setup (for minimization $\min_{x \in \Delta_n} f(x)$), we w
 \begin{equation}\label{eq:expUpdate}
   M_{t+1} \propto \exp \left( \log M_t - \gamma_t f'(M_t) \right),
 \end{equation}
-with matrix exponential and logarithm, $M_0 = \frac{1}{n} I_n$ and the right-hand side is normalized to unit trace to obtain $M_{t+1}$. $L(f)$ is the Lipschitz constant of $f$ w.r.t.\ the matrix trace norm. We can also show that $\Omega = O(\sqrt{\log n})$. 
+with matrix exponential and logarithm, $M_0 = \frac{1}{n} I_n$ and the right-hand side is normalized to unit trace to obtain $M_{t+1}$. $L(f)$ is the Lipschitz constant of $f$ w.r.t.\ the matrix trace norm. We can also show that $\Omega = O(\sqrt{\log n})$.
 
 Note that \eqref{eq:expUpdate} is written for the general minimization problem, while we consider the maximization problem, so our update step would instead be
 \[ M_{t+1} \propto \exp \left( \sum_{\tau=1}^t \alpha_\tau f'(M_\tau) \right) \]
 for some weights $\alpha_\tau$, where we also unrolled the recursion.
 
 
-\subsection*{Subgradients}
+\section{Subgradients}
 
 We need to compute subgradients of $f(M)$ as formulated in \eqref{eq:opt2} in order to compute mirror descent updates as stated above. We first state Danskin's Theorem \cite{danskin} that considers saddle problems of the form \eqref{eq:opt2}.
 
 \begin{theorem}[Danskin's Theorem]
-  Let $f(x) = \max_z \phi(x,z)$, where $\phi(\cdot,z)$ is a convex function for all $z$. Define $Z_0(x) = \{z' : \phi(x,z') = \max_z \phi(x,z)\}$ to be the set of maximizers $z$ given a point $x$. Then, under certain regularity conditions the subdifferential of $f$ at $x$ is given by 
+  Let $f(x) = \max_z \phi(x,z)$, where $\phi(\cdot,z)$ is a convex function for all $z$. Define $Z_0(x) = \{z' : \phi(x,z') = \max_z \phi(x,z)\}$ to be the set of maximizers $z$ given a point $x$. Then, under certain regularity conditions the subdifferential of $f$ at $x$ is given by
   \[ \partial f(x) = \mathrm{conv}\left\{ \partial \phi(x,z) : z \in Z_0(x)\right\}. \]
 \end{theorem}
 
-This way we see that for a given $M$, by finding a minimizer $Y$ of the hinge  $h(Y \cdot Q(M))$ we can obtain a subgradient for $f$ at $M$. 
-In particular, we have: 
+This way we see that for a given $M$, by finding a minimizer $Y$ of the hinge  $h(Y \cdot Q(M))$ we can obtain a subgradient for $f$ at $M$. In particular, we have:
 \[ \frac{\partial Q(M)}{\partial M_{ij}} = (w_{ij} - \gamma) L_{ij}, \quad \frac{\partial (Y \cdot Q(M))}{\partial M_{ij}} = (w_{ij} - \gamma) Y \cdot L_{ij}, \]
 Therefore we can write the following expression for the subgradient of $f$ at $M$.
 \[ \partial f(M) = \begin{cases}
 			\{C\}, \quad Q(M) \succeq 0 \\
-			\mathrm{conv}\left\{C + \sum_{i,j} (w_{ij} - \gamma) \left(Y \cdot L_{ij} \right) e_{ij} : 
+			\mathrm{conv}\left\{C + \sum_{i,j} (w_{ij} - \gamma) \left(Y \cdot L_{ij} \right) e_{ij} :
 			Y \in \arg\min_{Y' \succeq 0} \{h(Y' \cdot Q(M)\} \right\}, \quad Q(M) \not\succeq 0.
 			\end{cases} \]
 This can be further simplified by considering the definiton of the hinge function $h(\cdot).$
@@ -90,7 +89,7 @@ Y \in \arg\min_{Y' \succeq 0} \{h(Y' \cdot Q(M)\} = {Y' \succeq 0 : Q(M) \cdot Y
 $$
 In words, any $Y'$ which highlights a constraint broken by $M$ is a valid subgradient.
 
-\subsection{Some fixes to be included}
+\section{Some fixes to be included}
 
 Here are a number of things that need to be modified or dealt with in the current approach. Feel free to add more:
 \begin{enumerate}
@@ -100,7 +99,7 @@ Here are a number of things that need to be modified or dealt with in the curren
 
 
 
-\subsection*{Rounding}
+\section{Rounding}
 
 Instead of finding subgradients and solving mirror descent in the spectrahedron $\Delta_n$ to obtain a final $M^T$ and rounding that to a cut $S^T$ at the end of the algorithm, we may want to incorporate the rounding of the solution inside every iteration of the mirror descent algorithm. This might give us more intuitive iteration steps.
 
@@ -110,29 +109,69 @@ In order to do this rounding at every step, we need to come up with a rounding s
 
 
 
-\subsection*{Other notes}
+\section{Other notes}
 
 \begin{itemize}
 \item We may consider putting a slack term $Q(M) \succeq -\frac{\gamma}{2} I_n$ instead of $Q(M) \succeq 0$ in \eqref{eq:opt2}, which may lead to a better conditioning of the problem (?)
 \end{itemize}
 
 
-\bibliographystyle{plain} 
+
+\section{More refined formulation}
+
+We refine the formulation in Section 1, considering point 2 in Section 4, i.e., the fact that only $Q(M) \succeq 0$ might not give us a connected set. Ideally, we have $M = u u^\prime$, where $u \in \{0,1\}^n$ is $K$-sparse. Note that this implies
+\[ \left( \sum_i u_i \right)^2 \leq K \left( \sum_i u_i^2 \right), \]
+which can be seen easily by induction over $K$. Expanding above inequality, we have
+\[ \sum_{i,j} u_i u_j \leq K \sum_i u_i^2. \]
+This in turn corresponds to the following constraint on $M$
+\[ \sum_{i,j} M_{ij} \leq \sum_i M_{ii}, \]
+and considering that we have $\Tr(M) = 1$, this is equivalent to $J \cdot M \leq K$, where $J \triangleq 1_n 1_n^\prime$. Then a new formulation is
+
+\begin{align*}
+  \max_{M \in \Delta_n} \quad C \cdot M \quad \mathrm{s.t.\ } \quad & Q(M) \succeq 0, \quad M \geq 0, \quad J \cdot M \geq 0
+\end{align*}
+where $M \in \Delta_n$ implies $M \succeq 0$ and $I \cdot M = 1$.
+
+\subsection{Optimization}
+
+Can be formalized in the mirror descent framework as above, with two additional dual variables corresponding to $J \cdot M \leq K$ and $M \geq 0$. TODO: formalize and state the gradient and updates.
+
+\subsection{Issues}
+
+It seems that the above formulation is not enough for connectedness, which can be seen in the simulations in constr.m. However adding constraints found in \cite{nips} does enforce connectedness.
+
+For comparison purposes, in \cite{nips} the optimization formulation is
+\begin{align*}
+  \max_{M \text{ symmetric}} \quad C \cdot M \quad \mathrm{s.t.\ } \quad & Q(M) \succeq 0, \quad 1 \geq M \geq 0, \quad M_{pp} = 1 \\
+  & M_{ij} \leq M_{ii} \, \forall i, j, \quad M_{ii} \leq M_{ip} \, \forall i, \quad I \cdot M \leq K
+\end{align*}
+so the PSD constraint is relaxed but box constraints are added along with anchor constraints for an anchor node $p$ and non-diagonal constraints (which is stronger than PSD).
+
+It is stated in Theorem 3 in \cite{nips} that above constraints are satisfied for some $\gamma$ and anchor $p$ if and only if subgraph corresponding to $M$ ($S = supp(diag(M))$) is connected. It might be worthwhile to try to establish a if and only if relationship between the proposed formulation (without anchor nodes) and the condition stated in the Theorem, i.e.\ with our constraints, there exists some $p$ such that anchor constraints are satisfied and vice versa.
+
+
+
+\bibliographystyle{plain}
 \begin{thebibliography}{9}
 
 \bibitem{lectures}
   Aharon Ben-Tal and Arkadi Nemirovski,
   \emph{Lectures on modern convex optimization},
   \url{http://www2.isye.gatech.edu/~nemirovs/Lect_ModConvOpt.pdf}.
-  
+
 \bibitem{blog}
   Sebastian Bubeck,
   \emph{Mirror descent},
-  \url{https://blogs.princeton.edu/imabandit/2013/04/16/orf523-mirror-descent-part-iii/}.  
+  \url{https://blogs.princeton.edu/imabandit/2013/04/16/orf523-mirror-descent-part-iii/}.
 
 \bibitem{danskin}
   \emph{Danskin's theorem},
-  \url{http://en.wikipedia.org/wiki/Danskin\%27s_theorem}.  
+  \url{http://en.wikipedia.org/wiki/Danskin\%27s_theorem}.
+
+\bibitem{nips}
+  Jing Qian, Venkatesh Saligrama
+  \emph{Efficient minimax signal detection on graphs},
+  \url{http://papers.nips.cc/paper/5525-efficient-minimax-signal-detection-on-graphs}.
 
 \end{thebibliography}
 
