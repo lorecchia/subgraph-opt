@@ -22,21 +22,61 @@
 
 \section{Problem formulation}
 
-Let $G = (V,E)$ denote our underlying undirected unweighted graph with $n$ nodes and let $w_{ij} = 1$ if $(i,j) \in E$ and zero otherwise. Denote the $n \times n$ edge Laplacian matrix as $L_{ij} = e_{ii} + e_{jj} - e_{ij} - e_{ji}$ for two nodes $i$ and $j$, where $e_{ij}$ is a zero matrix with a one in index $i,j$. Let $A \cdot B = \Tr(A B)$ denote the inner product in the space of symmetric PSD matrices. Given a symmetric PSD matrix $M \in \mathbb{R}^{n \times n}$, $M \succeq 0$, we write
-\[ Q(M) = \sum_{i,j} (w_{ij} - \gamma) M_{ij} L_{ij} \succeq 0 \]
-as a constraint on the $\gamma$-connectivity of the subgraph induced by $M$ (e.g.\ if $M = \frac{1}{n} 1_S 1_S^T$ for subgraph $S$) on underlying graph $G$.
+Let $G = (V,E)$ denote our underlying undirected unweighted graph with $n$ nodes and let $w_{ij} = 1$ if $(i,j) \in E$ and zero otherwise. Denote the $n \times n$ edge Laplacian matrix as $L_{ij} = e_{ii} + e_{jj} - e_{ij} - e_{ji}$ for two nodes $i$ and $j$, where $e_{ij}$ is a zero matrix with a one in index $i,j$. Let $A \cdot B = \Tr(A B)$ denote the inner product in the space of symmetric PSD matrices. 
 
-We consider the following optimization problem:
+Let $G_S = (S, E_S)$ define a subgraph of graph $G$. Consider the following optimization problem with $n$-dimensional node objective vector $c$,
+\begin{equation}\label{eq:original_S}
+  \max_{S \subset V: G_S \text{ connected}} \frac{\sum_{i \in S} c_i}{\sqrt{|S|}}.
+\end{equation}
+
+Defining indicator vector $u \in \{0,1\}^n$ such that $u_i = 1_{\{i \in S\}}$, above problem can be written as
+\begin{equation}\label{eq:original_u}
+  \max_{u \in \{0,1\}^n, G_{\{i: u_i = 1\}} \text{ connected}} \frac{\sum_{i} c_i u_i}{\sqrt{\sum_i u_i}},
+\end{equation}
+and squaring the objective function and noting $u_i^2 = u_i$ we have
+\begin{equation}\label{eq:original_u2}
+  \max_{u \in \{0,1\}^n, G_{\{i: u_i = 1\}} \text{ connected}} \frac{\sum_{i,j} c_i c_j u_i u_j}{\sum_i u_i^2}.
+\end{equation}
+
+We now relax each element $u_i$ to a vector $v_i \in {\cal V}$ such that scalar multiplication is transformed to vector product and we have $\langle v_i, v_j \rangle = 1$ if $i,j \in S$ and zero otherwise. We then have
+\begin{equation}\label{eq:original_v}
+  \max_{v_i \in {\cal V}, G_{\{i: |v_i| > 0\}} \text{ connected}} \frac{\sum_{i,j} c_i c_j \langle v_i, v_j \rangle}{\sum_i |v_i|^2}.
+\end{equation}
+
+We can now use the Gram matrix $M = V^T V \succeq 0$ instead of $v_i$'s and write
+\begin{equation}\label{eq:M}
+  \max_{M \succeq 0, G_{\{i: |M_{ii}| > 0\}} \text{ connected}} \frac{C \cdot M}{I \cdot M},
+\end{equation}
+where $C = c c^T$. Note that we could also relax the problem directly such that $M = u u^T$.
+
+Given a symmetric PSD matrix $M \in \mathbb{R}^{n \times n}$, $M \succeq 0$, we write
+\[ Q(M) = \sum_{i,j} (w_{ij} - \gamma) M_{ij} L_{ij} \succeq 0 \]
+as a constraint on the $\gamma$-connectivity of the subgraph induced by $M$ (e.g.\ if $M = u u^T = 1_S 1_S^T$ for subgraph $S$) on underlying graph $G$. (To do: include Theorem 3 in \cite{nips} for the integer problem.)
+
+Fixing $I \cdot M = 1$, we consider the following relaxed optimization problem \eqref{eq:M}:
 \begin{equation}\label{eq:opt}
   \max_{M \in \Delta_n} \quad C \cdot M \quad \mathrm{s.t.\ } \quad Q(M) \succeq 0,
 \end{equation}
-where $\Delta_n = \{X \in \mathbb{R}^{n \times n} : X \succeq 0, \Tr(X) = I_n \cdot X = 1 \}$ denotes the ``spectrahedron'' of $n \times n$ symmetric PSD matrices with unit trace.
+where $\Delta_n = \{X \in \mathbb{R}^{n \times n} : X \succeq 0, \Tr(X) = I_n \cdot X = 1 \}$ denotes the ``spectrahedron'' of $n \times n$ symmetric PSD matrices with unit trace and $C = c c^T$.
 
-We consider the following Lagrangian of the above problem (where $h(x)$ is the hinge function such that $h(x) = x$ for $x \geq 0$ and zero otherwise):
-\begin{align}\label{eq:opt2}
-  \max_{M \in \Delta_n} f(M),\quad f(M) =  C \cdot M + \min_{Y \succeq 0}  h(Y \cdot Q(M)).
+
+
+\subsection{Additional constraints}
+
+We can also consider additional constraints that tighten the relaxation w.r.t.\ the integer problem. The first constraint we consider is an element-wise nonnegativity constraint $M \geq 0$ to help with the connectivity constraint. If we don't have such a constraint, it seems like a SDP solution may pick out disconnected components by giving positive values to one component and negative value to the other. This may complicate the iterative scheme, as we have to keep around these new $n^2$ constraints.
+
+Secondly, note that ideally, we have $M = u u^\prime$, where $u \in \{0,1\}^n$ is $K$-sparse. Note that this implies
+\[ \left( \sum_i u_i \right)^2 \leq K \left( \sum_i u_i^2 \right), \]
+which can be seen easily by induction over $K$. Expanding above inequality, we have
+\[ \sum_{i,j} u_i u_j \leq K \sum_i u_i^2. \]
+This in turn corresponds to the following constraint on $M$
+\[ \sum_{i,j} M_{ij} \leq K \sum_i M_{ii}, \]
+and considering that we have $\Tr(M) = 1$, this is equivalent to $J \cdot M \leq K$, where $J \triangleq 1_n 1_n^\prime$. Then a new formulation with the additional constraints is
+\begin{align}\label{eq:opt_add}
+  \max_{M \in \Delta_n} \quad C \cdot M \quad \mathrm{s.t.\ } \quad & Q(M) \succeq 0, \quad M \geq 0, \quad J \cdot M \geq 0.
 \end{align}
-Note that $f(M) = C \cdot M$ if $Q(M) \succeq 0$.
+
+
 
 
 \section{Non-smooth optimization with mirror descent}
@@ -67,6 +107,13 @@ for some weights $\alpha_\tau$, where we also unrolled the recursion.
 
 \section{Subgradients}
 
+We consider the following Lagrangian of optimization problem \eqref{eq:opt} (where $h(x)$ is the hinge function such that $h(x) = x$ for $x \geq 0$ and zero otherwise):
+\begin{align}\label{eq:opt2}
+  \max_{M \in \Delta_n} f(M),\quad f(M) =  C \cdot M + \min_{Y \succeq 0}  h(Y \cdot Q(M)).
+\end{align}
+Note that $f(M) = C \cdot M$ if $Q(M) \succeq 0$. We do not consider the additional constraints in this section yet. TODO: formalize and state the gradient and updates for the additional constraints. Can do Lagrangian without the hinge.
+
+
 We need to compute subgradients of $f(M)$ as formulated in \eqref{eq:opt2} in order to compute mirror descent updates as stated above. We first state Danskin's Theorem \cite{danskin} that considers saddle problems of the form \eqref{eq:opt2}.
 
 \begin{theorem}[Danskin's Theorem]
@@ -89,13 +136,13 @@ Y \in \arg\min_{Y' \succeq 0} \{h(Y' \cdot Q(M)\} = {Y' \succeq 0 : Q(M) \cdot Y
 $$
 In words, any $Y'$ which highlights a constraint broken by $M$ is a valid subgradient.
 
-\section{Some fixes to be included}
-
-Here are a number of things that need to be modified or dealt with in the current approach. Feel free to add more:
-\begin{enumerate}
-\item Formulation of the relaxation: if the goal is to relax the objective: $\max_{S \textrm{connected}} \frac{\sum_{i \in S} c_i}{|S|^2}$, as it is in oneof the applications, then we probably need to do a binary search over the possible sizes of $S.$ The reason is that the constraint $I \cdot M = 1$ and the objective $C \cdot M = 1$ are homogeneous, so they are suitable for optimizing $\frac{\sum_{i \in S} c_i}{|S|},$ which is trivially optimal at the maximum valued vertex.
-\item I am a bit worried about the constraint $Q(M) \succeq 0.$ It seems to me that it will work fine if we also impose $M_{ij} \geq 0$ for all $i,j.$  If we don't do this, it seems like a SDP solution may pick out disconnected components by giving positive values to one component and negative value to the other. This may complicate the iterative scheme, as we have to keep around these new $n^2$ constraints. Lorenzo will think more about this.
-\end{enumerate}
+% \section{Some fixes to be included}
+% 
+% Here are a number of things that need to be modified or dealt with in the current approach. Feel free to add more:
+% \begin{enumerate}
+% \item Formulation of the relaxation: if the goal is to relax the objective: $\max_{S \textrm{connected}} \frac{\sum_{i \in S} c_i}{|S|^2}$, as it is in oneof the applications, then we probably need to do a binary search over the possible sizes of $S.$ The reason is that the constraint $I \cdot M = 1$ and the objective $C \cdot M = 1$ are homogeneous, so they are suitable for optimizing $\frac{\sum_{i \in S} c_i}{|S|},$ which is trivially optimal at the maximum valued vertex.
+% \item I am a bit worried about the constraint $Q(M) \succeq 0.$ It seems to me that it will work fine if we also impose $M_{ij} \geq 0$ for all $i,j.$  If we don't do this, it seems like a SDP solution may pick out disconnected components by giving positive values to one component and negative value to the other. This may complicate the iterative scheme, as we have to keep around these new $n^2$ constraints. Lorenzo will think more about this.
+% \end{enumerate}
 
 
 
@@ -107,51 +154,37 @@ In every iteration $t$, we would round the matrix $M_t$ to a cut $S_t$. We would
 
 In order to do this rounding at every step, we need to come up with a rounding scheme to go from matrix $M_t$ to cut $S_t$, and also show that we can find a minimizer $Y$ through solving a cut problem to obtain a subgradient.
 
+Note that a simple rounding where $S = supp(diag(M))$ may not always be enough to give a connected solution. The reason for this can be that the solution $M$ is possibly a mixture of connected solutions, so the union is not necessarily connected.
+
+A better rounding strategy is random hyperplane rounding \cite{rounding}, where we do
+\[ w = M (v/\|v\|), \quad v \sim {\cal N}(0, I_n) \]
+for random unit vector $v$, possibly multiple times. Then we can threshold these $w$ to obtain multiple clusters, which we expect to be connected if the formulation is valid. For nodes $i$ that are not selected, we expect that $w_i \approx 0$. Relaxation and rounding leading to an approximately optimal solution for the problem in \eqref{eq:original_S} needs proof.
+
 
 
 \section{Other notes}
 
 \begin{itemize}
-\item We may consider putting a slack term $Q(M) \succeq -\frac{\gamma}{2} I_n$ instead of $Q(M) \succeq 0$ in \eqref{eq:opt2}, which may lead to a better conditioning of the problem (?)
+  \item We may consider putting a slack term $Q(M) \succeq -\frac{\gamma}{2} I_n$ instead of $Q(M) \succeq 0$ in \eqref{eq:opt2}, which may lead to a better conditioning of the problem (?)
+  \item Another thing to try is defining $Q(M) = \sum_{i<j} (w_{ij} - \gamma) M_{ij}^2 L_{ij}$ where we squared $M$ elementwise. This might give a better relaxation w.r.t.\ the integer problem, but may not be convex (?)
+  \item We can also consider an objective with a smooth soft-min penalty instead of the constraint $Q(M) \succeq 0$ such that the objective is
+    \[ f(M) = C \cdot M - \frac{1}{t} \log \left( I \cdot e^{-t Q(M)} \right). \]
+    Writing $Q(M) = L \circ M$ where $\circ$ is the tensor-matrix product, we then have
+    \[ \nabla f(M) = \frac{L \circ e^{-t L \circ M}}{I \cdot e^{-t L \circ M}}, \]
+    for which the trace is 
+    \[ I \cdot \nabla f(M) = \frac{L \cdot e^{-t L \circ M}}{I \cdot e^{-t L \circ M}}, \]
+    which is similar to the Rayleigh quotient for $L$.
 \end{itemize}
 
 
-
-\section{More refined formulation}
-
-We refine the formulation in Section 1, considering point 2 in Section 4, i.e., the fact that only $Q(M) \succeq 0$ might not give us a connected set. Ideally, we have $M = u u^\prime$, where $u \in \{0,1\}^n$ is $K$-sparse. Note that this implies
-\[ \left( \sum_i u_i \right)^2 \leq K \left( \sum_i u_i^2 \right), \]
-which can be seen easily by induction over $K$. Expanding above inequality, we have
-\[ \sum_{i,j} u_i u_j \leq K \sum_i u_i^2. \]
-This in turn corresponds to the following constraint on $M$
-\[ \sum_{i,j} M_{ij} \leq K \sum_i M_{ii}, \]
-and considering that we have $\Tr(M) = 1$, this is equivalent to $J \cdot M \leq K$, where $J \triangleq 1_n 1_n^\prime$. Then a new formulation is
-
-\begin{align*}
-  \max_{M \in \Delta_n} \quad C \cdot M \quad \mathrm{s.t.\ } \quad & Q(M) \succeq 0, \quad M \geq 0, \quad J \cdot M \geq 0
-\end{align*}
-where $M \in \Delta_n$ implies $M \succeq 0$ and $I \cdot M = 1$.
-
-\subsection{Optimization}
-
-Can be formalized in the mirror descent framework as above, with two additional dual variables corresponding to $J \cdot M \leq K$ and $M \geq 0$. TODO: formalize and state the gradient and updates.
-
-\subsection{Rounding}
-
-It seems that the above formulation is not enough for connectedness, which can be seen in the simulations in constr.m. However adding constraints found in \cite{nips} does enforce connectedness. However this is for the simple rounding case where $S = supp(diag(S))$. The reason for this can be that the solution $M$ is like a mixture of connected solutions, so the union is not necessarily connected.
-
-Will investigate different rounding strategies such as hyperplane rounding, where we e.g.\ do
-\[ w = Mv, \quad v \in \{-1, 1\}^n, \]
-for some random vector $v$, possibly multiple times. Then we can threshold these $w$ to obtain multiple clusters, which we expect to be connected if the formulation is valid.
-
-For comparison purposes, in \cite{nips} the optimization formulation is
-\begin{align*}
-  \max_{M \text{ symmetric}} \quad C \cdot M \quad \mathrm{s.t.\ } \quad & Q(M) \succeq 0, \quad 1 \geq M \geq 0, \quad M_{pp} = 1 \\
-  & M_{ij} \leq M_{ii} \; \forall i, j, \quad M_{ii} \leq M_{ip} \; \forall i, \quad I \cdot M \leq K
-\end{align*}
-so the PSD constraint is relaxed but box constraints are added along with anchor constraints for an anchor node $p$ and non-diagonal constraints (which is stronger than PSD).
-
-(As an aside: It is stated in Theorem 3 in \cite{nips} that above constraints are satisfied for some $\gamma$ and anchor $p$ if and only if subgraph corresponding to $M$ ($S = supp(diag(M))$) is connected. It might be worthwhile to try to establish a if and only if relationship between the proposed formulation (without anchor nodes) and the condition stated in the Theorem, i.e.\ with our constraints, there exists some $p$ such that anchor constraints are satisfied and vice versa.)
+% For comparison purposes, in \cite{nips} the optimization formulation is
+% \begin{align*}
+%   \max_{M \text{ symmetric}} \quad C \cdot M \quad \mathrm{s.t.\ } \quad & Q(M) \succeq 0, \quad 1 \geq M \geq 0, \quad M_{pp} = 1 \\
+%   & M_{ij} \leq M_{ii} \; \forall i, j, \quad M_{ii} \leq M_{ip} \; \forall i, \quad I \cdot M \leq K
+% \end{align*}
+% so the PSD constraint is relaxed but box constraints are added along with anchor constraints for an anchor node $p$ and non-diagonal constraints (which is stronger than PSD).
+% 
+% (As an aside: It is stated in Theorem 3 in \cite{nips} that above constraints are satisfied for some $\gamma$ and anchor $p$ if and only if subgraph corresponding to $M$ ($S = supp(diag(M))$) is connected. It might be worthwhile to try to establish a if and only if relationship between the proposed formulation (without anchor nodes) and the condition stated in the Theorem, i.e.\ with our constraints, there exists some $p$ such that anchor constraints are satisfied and vice versa.)
 
 
 
@@ -177,6 +210,10 @@ so the PSD constraint is relaxed but box constraints are added along with anchor
   \emph{Efficient minimax signal detection on graphs},
   \url{http://arxiv.org/abs/1411.6203}.
 
+\bibitem{rounding}
+  Jerome Le Ny,
+  \emph{Rounding techniques for semidefinite relaxations},
+  \url{http://www.professeurs.polymtl.ca/jerome.le-ny/docs/reports/SDProunding.pdf}.
 \end{thebibliography}
 
 
